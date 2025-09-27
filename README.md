@@ -52,7 +52,7 @@ Internet connection for web search
 
 ### 1. Clone & Install
 ```bash
-git clone repo_link
+git clone https://github.com/arkakran/Mini-Agentic-Pipeline.git
 cd mini-agentic-pipeline
 pip install -r requirements.txt
 ```
