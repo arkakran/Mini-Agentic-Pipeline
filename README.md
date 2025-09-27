@@ -4,7 +4,6 @@ A production-ready AI question answering system that intelligently combines **kn
 
 ![Python](https://img.shields.io/badge/python-v3.8+-blue.svg)
 ![Flask](https://img.shields.io/badge/flask-v3.0.0-green.svg)
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
 ## 🎯 Demo
 
@@ -42,7 +41,6 @@ A production-ready AI question answering system that intelligently combines **kn
 - Real-time query processing with loading states
 - Interactive trace visualization
 - Built-in performance evaluation tools
-- No complex JavaScript frameworks
 
 ## 🚀 Quick Start
 
@@ -54,7 +52,7 @@ Internet connection for web search
 
 ### 1. Clone & Install
 ```bash
-git clone <your-repo-url>
+git clone repo_link
 cd mini-agentic-pipeline
 pip install -r requirements.txt
 ```
@@ -155,11 +153,6 @@ Answer: "Recent AI developments include..." + sources
 
 ## 🧪 Testing & Evaluation
 
-### Run Automated Tests
-```bash
-python tests/test_queries.py
-```
-
 ### Web Interface Testing
 1. Visit `http://localhost:5000`
 2. Try example queries
@@ -190,17 +183,6 @@ CHUNK_OVERLAP=50                  # Chunk overlap
 MAX_DOCUMENTS=20                  # KB document limit
 ```
 
-### Customizing Knowledge Base
-Replace `my_data.txt` with your own documents:
-```
-# Your Knowledge Base
-
-## Document 1: Product Information
-Your product details here...
-
-## Document 2: Service Information  
-Your service details here...
-```
 
 ## 🔧 Technical Details
 
@@ -242,58 +224,10 @@ Your service details here...
 - ✅ **Reliability**: 99.9% uptime SLA
 - ✅ **Integration**: Simple, clean API
 
-## 🚧 Known Limitations
-
-1. **Knowledge Base Size**: Optimized for 20-100 documents
-2. **Language Support**: Best performance with English queries
-3. **Context Window**: Long documents may be truncated
-4. **API Dependencies**: Requires internet for LLM and web search
-5. **Rate Limits**: Free tiers have usage restrictions
-
-## 🔮 Future Enhancements
-
-- [ ] **Multi-modal Search**: Image and PDF processing
-- [ ] **Larger Knowledge Bases**: Support for 1000+ documents
-- [ ] **Conversation Memory**: Multi-turn dialogue support
-- [ ] **Custom Embeddings**: Domain-specific models
-- [ ] **Caching Layer**: Redis for performance optimization
-- [ ] **REST API**: Programmatic access endpoints
-- [ ] **Multi-language**: Support for non-English queries
-
 ## 🎥 Demo Video
 
-**[🎬 Watch 7-minute Demo](your-video-link-here)**
+**[🎬 Watch Demo Video](https://drive.google.com/file/d/190XzTVKaV0dxCihZV7szrPCfviz5fQVK/view?usp=drivesdk)** - Sorry for the long explaination 
 
-The demo covers:
-- **Architecture Overview** (2 minutes)
-- **Live Query Examples** (3 minutes) 
-- **Performance Analysis** (2 minutes)
-
-## 🤝 Contributing
-
-We welcome contributions! Here's how:
-
-1. **Fork** the repository
-2. **Create** feature branch: `git checkout -b feature/amazing-feature`
-3. **Commit** changes: `git commit -m 'Add amazing feature'`
-4. **Push** to branch: `git push origin feature/amazing-feature`
-5. **Open** Pull Request
-
-### Development Setup
-```bash
-# Install dev dependencies
-pip install -r requirements-dev.txt
-
-# Run tests
-python -m pytest tests/
-
-# Code formatting
-black . && isort .
-```
-
-## 📄 License
-
-This project is licensed under the **MIT License** - see [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
@@ -303,52 +237,4 @@ This project is licensed under the **MIT License** - see [LICENSE](LICENSE) file
 - **[Sentence Transformers](https://www.sbert.net/)** for semantic embeddings
 - **[Flask](https://flask.palletsprojects.com/)** for the web framework
 
-## 🆘 Support
-
-**Having issues?**
-
-1. **Check** the [troubleshooting guide](#🔧-troubleshooting)
-2. **Search** existing [issues](../../issues)
-3. **Create** a [new issue](../../issues/new) with:
-   - Python version
-   - Error messages
-   - Steps to reproduce
-
-## 🔧 Troubleshooting
-
-### Common Issues
-
-**"Pipeline initialization failed"**
-```bash
-# Check API keys in .env file
-cat .env | grep API_KEY
-
-# Test Groq connection
-python -c "import requests; print('Groq:', requests.get('https://api.groq.com').status_code)"
-```
-
-**"FAISS import error"**
-```bash
-pip uninstall faiss-cpu faiss-gpu
-pip install faiss-cpu==1.7.4
-```
-
-**"Port 5000 already in use"**
-```python
-# In app.py, change:
-app.run(debug=True, host='0.0.0.0', port=8080)  # Use different port
-```
-
-**"Tavily search failed"**
-```bash
-# Check API key and quota
-curl -X POST "https://api.tavily.com/search" \
-  -H "Content-Type: application/json" \
-  -d '{"api_key": "your_key", "query": "test", "max_results": 1}'
-```
-
----
-
-**Built with ❤️ for intelligent question answering**
-
-*Star ⭐ this repo if it helped you build something awesome!*
+## ThankYou
