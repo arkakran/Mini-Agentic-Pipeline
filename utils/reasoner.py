@@ -1,143 +1,3 @@
-# import json
-# import requests
-# from typing import Dict, List
-# import logging
-
-# class LLMReasoner:
-#     def __init__(self, api_key: str, model: str = "llama-3.3-70b-versatile"):
-#         self.api_key = api_key
-#         self.model = model
-#         self.base_url = "https://api.groq.com/openai/v1"
-#         self.logger = logging.getLogger(__name__)
-        
-#         # Test API key on initialization
-#         self._test_connection()
-#         self.logger.info(f"LLM Reasoner initialized with model: {model}")
-    
-#     def _test_connection(self):
-#         try:
-#             self._call_api([{"role": "user", "content": "test"}], max_tokens=1)
-#         except Exception as e:
-#             raise Exception(f"Groq API connection failed: {e}")
-    
-#     def _call_api(self, messages: List[Dict], max_tokens: int = 1000) -> str:
-#         headers = {
-#             "Authorization": f"Bearer {self.api_key}",
-#             "Content-Type": "application/json"
-#         }
-        
-#         data = {
-#             "model": self.model,
-#             "messages": messages,
-#             "max_tokens": max_tokens,
-#             "temperature": 0.3
-#         }
-        
-#         try:
-#             response = requests.post(
-#                 f"{self.base_url}/chat/completions",
-#                 headers=headers,
-#                 json=data,
-#                 timeout=30
-#             )
-            
-#             if response.status_code != 200:
-#                 raise Exception(f"API error: {response.status_code}")
-            
-#             return response.json()['choices'][0]['message']['content'].strip()
-            
-#         except Exception as e:
-#             self.logger.error(f"API call failed: {e}")
-#             return f"Error processing request: {e}"
-    
-#     def decide_action(self, query: str, kb_results: List[Dict], max_similarity: float, 
-#                      threshold: float = 0.7) -> Dict:
-        
-#         if max_similarity > threshold and kb_results:
-#             kb_summary = ""
-#             for i, result in enumerate(kb_results[:2]):
-#                 kb_summary += f"{i+1}. {result['content'][:150]}...\n"
-            
-#             prompt = f"""Query: "{query}"
-#                 Available info: {kb_summary}
-#                 Similarity: {max_similarity:.3f}
-
-#                 Is this information sufficient? Reply with JSON:
-#                 {{"decision": "use_kb" or "web_search", "reasoning": "brief explanation"}}"""
-            
-#             response = self._call_api([{"role": "user", "content": prompt}], 200)
-            
-#             try:
-#                 start = response.find('{')
-#                 end = response.rfind('}') + 1
-#                 if start != -1 and end != 0:
-#                     decision_data = json.loads(response[start:end])
-#                     if decision_data.get("decision") in ["use_kb", "web_search"]:
-#                         return {**decision_data, "confidence": max_similarity}
-#             except:
-#                 pass
-            
-#             # Fallback to use KB
-#             return {
-#                 "decision": "use_kb",
-#                 "reasoning": f"High similarity ({max_similarity:.3f}) with relevant results",
-#                 "confidence": max_similarity
-#             }
-#         else:
-#             # Use web search
-#             return {
-#                 "decision": "web_search", 
-#                 "reasoning": f"Low similarity ({max_similarity:.3f}) or no KB results",
-#                 "confidence": 0.5
-#             }
-    
-#     def generate_answer_from_kb(self, query: str, kb_results: List[Dict]) -> str:
-#         # Format KB results
-#         context = ""
-#         for i, result in enumerate(kb_results[:3]):
-#             source = result.get('metadata', {}).get('source', f'Doc{i+1}')
-#             context += f"[{source}]: {result['content']}\n\n"
-        
-#         prompt = f"""Answer this query using ONLY the provided information:
-
-# Query: {query}
-
-# Information:
-# {context}
-
-# Provide a clear, specific answer with details like pricing, features, etc. when available."""
-        
-#         messages = [
-#             {"role": "system", "content": "You are a helpful assistant. Use only the provided information to answer queries."},
-#             {"role": "user", "content": prompt}
-#         ]
-        
-#         return self._call_api(messages, 600)
-    
-#     def generate_answer_from_web(self, query: str, web_results: List[Dict]) -> str:
-#         # Format web results
-#         context = ""
-#         for i, result in enumerate(web_results[:3]):
-#             title = result.get('title', 'No title')
-#             content = result.get('content', '')[:200]
-#             url = result.get('url', '')
-#             context += f"Source {i+1}: {title}\n{content}...\nURL: {url}\n\n"
-        
-#         prompt = f"""Answer this query using the web search results:
-
-#             Query: {query}
-#             Search Results:
-#             {context}
-
-#             Provide a current, accurate answer and mention sources when relevant."""
-        
-#         messages = [
-#             {"role": "system", "content": "You are a helpful assistant. Synthesize web search results to answer queries accurately."},
-#             {"role": "user", "content": prompt}
-#         ]
-        
-#         return self._call_api(messages, 600)
-
 import os
 import json
 from typing import Dict, List, Any, Tuple
@@ -230,7 +90,6 @@ class LLMReasoner:
         self.current_version = "v1"
     
     def _initialize_client(self):
-        """Initialize the LLM client with fallback methods"""
         
         # Method 1: Try importing and using Groq normally
         try:
@@ -247,7 +106,6 @@ class LLMReasoner:
                 raise Exception(f"All client initialization methods failed. Groq: {e1}, HTTP: {e2}")
     
     def _create_http_client(self):
-        """Create a simple HTTP-based client for Groq API"""
         
         class SimpleGroqClient:
             def __init__(self, api_key: str, model: str):
@@ -290,7 +148,6 @@ class LLMReasoner:
                     raise Exception(f"Network error: {e}")
             
             def create_chat_completion(self, messages: List[Dict], max_tokens: int = 1000, temperature: float = 0.3) -> str:
-                """Create a chat completion"""
                 headers = {
                     "Authorization": f"Bearer {self.api_key}",
                     "Content-Type": "application/json"
@@ -325,7 +182,6 @@ class LLMReasoner:
         return SimpleGroqClient(self.api_key, self.model)
     
     def _test_client(self):
-        """Test if the client is working"""
         test_messages = [
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": "Say 'OK' if you can hear me."}
@@ -452,7 +308,6 @@ class LLMReasoner:
                 }
     
     def generate_answer_from_kb(self, query: str, kb_results: List[Dict]) -> str:
-        """Generate answer using knowledge base results"""
         try:
             # Format KB results
             kb_text = ""
@@ -483,7 +338,6 @@ class LLMReasoner:
                 return f"I don't have specific information about '{query}' in my knowledge base."
     
     def generate_answer_from_web(self, query: str, web_results: List[Dict]) -> str:
-        """Generate answer using web search results"""
         try:
             # Format web results
             web_text = ""
@@ -515,7 +369,6 @@ class LLMReasoner:
                 return f"I searched the web for '{query}' but couldn't find relevant information at this time."
     
     def set_prompt_version(self, version: str):
-        """Set the prompt template version"""
         if version in self.prompt_templates:
             self.current_version = version
             self.logger.info(f"Switched to prompt version: {version}")
@@ -523,11 +376,9 @@ class LLMReasoner:
             self.logger.warning(f"Unknown prompt version: {version}")
     
     def get_available_versions(self) -> List[str]:
-        """Get list of available prompt versions"""
         return list(self.prompt_templates.keys())
     
     def get_client_info(self) -> Dict:
-        """Get information about the current client setup"""
         return {
             "model": self.model,
             "client_type": type(self.client).__name__,
