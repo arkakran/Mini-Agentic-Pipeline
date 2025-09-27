@@ -1,0 +1,17 @@
+flaskpy
+python-dotenv
+groq
+tavily-python
+sentence-transformers
+huggingface_hub
+transformers
+faiss-cpu
+numpy
+pandas
+scikit-learn
+langchain-text-splitters
+beautifulsoup4
+requests
+jinja2
+torch
+tokenizers

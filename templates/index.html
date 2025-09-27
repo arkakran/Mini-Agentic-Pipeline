@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Agentic Pipeline</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 Mini Agentic Pipeline</h1>
+            <p>Intelligent question answering with knowledge base retrieval and web search</p>
+        </header>
+
+        <main>
+            <div class="query-section">
+                <div class="input-group">
+                    <textarea id="queryInput" placeholder="Ask me anything... (e.g., 'What is the pricing for CloudSync Pro?' or 'Latest AI news')" rows="3"></textarea>
+                    <button id="submitBtn" onclick="submitQuery()">
+                        <span id="submitText">Ask Question</span>
+                        <div id="loadingSpinner" class="spinner" style="display: none;"></div>
+                    </button>
+                </div>
+            </div>
+
+            <div id="results" class="results-section" style="display: none;">
+                <div class="answer-card">
+                    <h3>💡 Answer</h3>
+                    <div id="answerContent"></div>
+                </div>
+
+                <div class="trace-card">
+                    <h3>🔍 Processing Trace</h3>
+                    <div id="traceContent"></div>
+                </div>
+            </div>
+
+            <div class="example-queries">
+                <h3>📝 Example Queries</h3>
+                <div class="examples-grid">
+                    <button class="example-btn" onclick="setQuery('What is the pricing for CloudSync Pro?')">
+                        Pricing Question
+                    </button>
+                    <button class="example-btn" onclick="setQuery('Tell me about DataGuard Security Suite features')">
+                        Product Features
+                    </button>
+                    <button class="example-btn" onclick="setQuery('What support options are available?')">
+                        Support Info
+                    </button>
+                    <button class="example-btn" onclick="setQuery('Latest news about artificial intelligence')">
+                        Current Events
+                    </button>
+                    <button class="example-btn" onclick="setQuery('Best practices for cloud security 2024')">
+                        Web Research
+                    </button>
+                    <button class="example-btn" onclick="setQuery('Current weather in New York')">
+                        Real-time Data
+                    </button>
+                </div>
+            </div>
+
+            <div class="stats-section">
+                <button id="statsBtn" onclick="loadStats()">📊 View System Stats</button>
+                <button id="evaluateBtn" onclick="runEvaluation()">🧪 Run Evaluation</button>
+            </div>
+
+            <div id="statsModal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <span class="close" onclick="closeModal('statsModal')">&times;</span>
+                    <h3>📊 System Statistics</h3>
+                    <div id="statsContent"></div>
+                </div>
+            </div>
+
+            <div id="evalModal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <span class="close" onclick="closeModal('evalModal')">&times;</span>
+                    <h3>🧪 Evaluation Results</h3>
+                    <div id="evalContent"></div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Built with Flask, FAISS, Groq API, and Tavily Search</p>
+        </footer>
+    </div>
+
+    <script>
+        function setQuery(query) {
+            document.getElementById('queryInput').value = query;
+        }
+
+        async function submitQuery() {
+            const query = document.getElementById('queryInput').value.trim();
+            if (!query) {
+                alert('Please enter a question');
+                return;
+            }
+
+            // Show loading state
+            const submitBtn = document.getElementById('submitBtn');
+            const submitText = document.getElementById('submitText');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            
+            submitBtn.disabled = true;
+            submitText.style.display = 'none';
+            loadingSpinner.style.display = 'inline-block';
+
+            try {
+                const response = await fetch('/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: query })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    displayResults(data);
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Network error: ' + error.message);
+            } finally {
+                // Reset button state
+                submitBtn.disabled = false;
+                submitText.style.display = 'inline';
+                loadingSpinner.style.display = 'none';
+            }
+        }
+
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            const answerContent = document.getElementById('answerContent');
+            const traceContent = document.getElementById('traceContent');
+
+            // Display answer
+            answerContent.innerHTML = `<p>${data.answer.replace(/\n/g, '<br>')}</p>`;
+
+            // Display trace
+            const trace = data.trace;
+            let traceHtml = `
+                <div class="trace-item">
+                    <strong>Decision:</strong> ${trace.decision.decision || 'N/A'}
+                    <div class="trace-detail">Reasoning: ${trace.decision.reasoning || 'N/A'}</div>
+                </div>
+                <div class="trace-item">
+                    <strong>Information Source:</strong> ${trace.source === 'knowledge_base' ? 'Knowledge Base' : 'Web Search'}
+                </div>
+                <div class="trace-item">
+                    <strong>Processing Time:</strong> ${trace.latency?.toFixed(3) || 0} seconds
+                </div>
+                <div class="trace-item">
+                    <strong>KB Results:</strong> ${trace.kb_results_count} documents (max similarity: ${(trace.max_similarity || 0).toFixed(3)})
+                </div>
+            `;
+
+            if (trace.web_results_count > 0) {
+                traceHtml += `
+                    <div class="trace-item">
+                        <strong>Web Results:</strong> ${trace.web_results_count} sources
+                    </div>
+                `;
+            }
+
+            traceHtml += `
+                <div class="trace-steps">
+                    <strong>Processing Steps:</strong>
+                    <ul>
+                        ${trace.steps.map(step => `<li>${step}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+
+            traceContent.innerHTML = traceHtml;
+            resultsDiv.style.display = 'block';
+
+            // Scroll to results
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/stats');
+                const data = await response.json();
+
+                if (response.ok) {
+                    let statsHtml = `
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <h4>📚 Knowledge Base</h4>
+                                <p>Documents: ${data.retriever_stats.total_documents}</p>
+                                <p>Dimensions: ${data.retriever_stats.dimension}</p>
+                                <p>Index: ${data.retriever_stats.index_type}</p>
+                            </div>
+                            <div class="stat-card">
+                                <h4>🧠 Reasoning Engine</h4>
+                                <p>Model: ${data.reasoner_model}</p>
+                                <p>Total Queries: ${data.total_traces}</p>
+                            </div>
+                            <div class="stat-card">
+                                <h4>🔍 Web Search</h4>
+                                <p>Service: ${data.search_service.service}</p>
+                                <p>Features: ${data.search_service.features.join(', ')}</p>
+                            </div>
+                        </div>
+                    `;
+
+                    document.getElementById('statsContent').innerHTML = statsHtml;
+                    document.getElementById('statsModal').style.display = 'block';
+                } else {
+                    alert('Error loading stats: ' + data.error);
+                }
+            } catch (error) {
+                alert('Network error: ' + error.message);
+            }
+        }
+
+        async function runEvaluation() {
+            const evalBtn = document.getElementById('evaluateBtn');
+            evalBtn.disabled = true;
+            evalBtn.textContent = 'Running Evaluation...';
+
+            try {
+                const response = await fetch('/evaluate');
+                const data = await response.json();
+
+                if (response.ok) {
+                    const metrics = data.results.performance_metrics;
+                    let evalHtml = `
+                        <div class="eval-summary">
+                            <h4>📈 Performance Summary</h4>
+                            <div class="metrics-grid">
+                                <div class="metric">
+                                    <label>Average Latency:</label>
+                                    <span>${metrics.average_latency.toFixed(3)}s</span>
+                                </div>
+                                <div class="metric">
+                                    <label>Success Rate:</label>
+                                    <span>${(metrics.success_rate * 100).toFixed(1)}%</span>
+                                </div>
+                                <div class="metric">
+                                    <label>KB Usage:</label>
+                                    <span>${(metrics.kb_usage_rate * 100).toFixed(1)}%</span>
+                                </div>
+                                <div class="metric">
+                                    <label>Web Search:</label>
+                                    <span>${(metrics.web_search_rate * 100).toFixed(1)}%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="eval-details">
+                            <h4>📊 Detailed Report</h4>
+                            <pre>${data.report}</pre>
+                        </div>
+                    `;
+
+                    document.getElementById('evalContent').innerHTML = evalHtml;
+                    document.getElementById('evalModal').style.display = 'block';
+                } else {
+                    alert('Error running evaluation: ' + data.error);
+                }
+            } catch (error) {
+                alert('Network error: ' + error.message);
+            } finally {
+                evalBtn.disabled = false;
+                evalBtn.textContent = '🧪 Run Evaluation';
+            }
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+
+        // Enter key submission
+        document.getElementById('queryInput').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' && event.ctrlKey) {
+                submitQuery();
+            }
+        });
+    </script>
+</body>
+</html>
